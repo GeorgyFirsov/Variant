@@ -142,6 +142,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Exception.h" />
     <ClInclude Include="TypeList.h" />
     <ClInclude Include="Variant.h" />
   </ItemGroup>

@@ -71,9 +71,9 @@ namespace utils {
     template<
         size_t Idx        /* Index to get type at */,
         typename... Types /* Types stored in typelist */
-    > constexpr auto Get( TypeList<Types...> tl )
+    > constexpr auto Get( TypeList<Types...> type_list )
     {
-        static_assert( Idx < Size( tl ), "Out of range in Get" );
+        static_assert( Idx < Size( type_list ), "Out of range in Get" );
 
         return Identity<decltype( 
             GetImpl< std::make_index_sequence<Idx> >::dummy( static_cast<Types*>( nullptr )... ) 
@@ -132,6 +132,38 @@ namespace utils {
     > constexpr std::size_t IndexOf( TypeList<Types...> type_list )
     {
         return IndexOfImpl<Type>( type_list, std::make_index_sequence<sizeof...( Types )>{} );
+    }
+
+
+    // Helpers for 'ForEach' function-template
+    namespace {
+
+        template<typename Fn, typename... Types, std::size_t Idx, std::size_t... Idxs>
+        Fn ForEechImpl( TypeList<Types...> type_list, Fn func, std::index_sequence<Idx, Idxs...> )
+        {
+            constexpr std::size_t current_index = sizeof...( Types ) - sizeof...( Idxs ) - 1;
+
+            func( Get<current_index>( type_list ) );
+            return ForEechImpl( type_list, func, std::make_index_sequence<sizeof...( Idxs )>{} );
+        }
+
+        template<typename Fn, typename... Types, std::size_t Idx>
+        Fn ForEechImpl( TypeList<Types...> type_list, Fn func, std::index_sequence<Idx> )
+        {
+            constexpr std::size_t current_index = sizeof...( Types ) - 1;
+
+            func( Get<current_index>( type_list ) );
+            return func;
+        }
+
+    } // helper anonymous namespace
+
+    // Applies func to each type's in typelist wrapper. Useful to enumerate types and
+    // use an information about them on each iteration.
+    template<typename Fn, typename... Types>
+    Fn ForEach( TypeList<Types...> type_list, Fn func ) 
+    {
+        return ForEechImpl( type_list, func, std::make_index_sequence<sizeof...( Types )>{} );
     }
 
 } // namespace utils
